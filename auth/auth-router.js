@@ -5,6 +5,21 @@ const jwt = require('jsonwebtoken')
 const Users = require('./user-model')
 const secrets = require('../config/secrets')
 
+const session = require('express-session')
+
+const sessionConfig = {
+  name: 'cookie',
+  secret: 'this is my little secret!',
+  cookie: {
+    maxAge: 10000 * 33000,
+    secure: false,
+    httpOnly: true,
+  },
+  resave: false,
+  saveUninitialized: false,
+}
+
+router.use(session(sessionConfig))
 
 router.post('/register', (req, res) => {
   let user = req.body
@@ -26,6 +41,7 @@ router.post('/login', (req, res) => {
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
         const token = generateToken(user)
+        req.session.user = user
         res.status(200).json({ token })
       }
       else {
